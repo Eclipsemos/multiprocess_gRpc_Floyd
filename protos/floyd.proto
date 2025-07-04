@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package floyd;
+
+service FloydService {
+    // 计算图的最短路径
+    rpc ComputeShortestPaths(GraphRequest) returns (GraphResponse);
+    
+    // 获取计算状态
+    rpc GetComputeStatus(StatusRequest) returns (StatusResponse);
+}
+
+message GraphRequest {
+    int32 num_vertices = 1;
+    repeated Edge edges = 2;
+    int32 num_processes = 3;  // 使用的进程数量
+}
+
+message Edge {
+    int32 from_node = 1;
+    int32 to = 2;
+    double weight = 3;
+}
+
+message GraphResponse {
+    bool success = 1;
+    string message = 2;
+    repeated Row distance_matrix = 3;
+    double computation_time = 4;
+    int32 processes_used = 5;
+}
+
+message Row {
+    repeated double distances = 1;
+}
+
+message StatusRequest {
+    string compute_id = 1;
+}
+
+message StatusResponse {
+    string status = 1;  // "running", "completed", "failed"
+    double progress = 2;  // 0.0 - 1.0
+    string message = 3;
+} 
