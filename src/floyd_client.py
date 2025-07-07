@@ -28,7 +28,13 @@ class FloydClient:
     
     async def __aenter__(self):
         """支持异步上下文管理器 (async with)"""
-        self._channel = grpc.aio.insecure_channel(self.server_address)
+        # 设置消息大小限制 (100MB)
+        options = [
+            ('grpc.max_send_message_length', 100 * 1024 * 1024),
+            ('grpc.max_receive_message_length', 100 * 1024 * 1024),
+        ]
+        
+        self._channel = grpc.aio.insecure_channel(self.server_address, options=options)
         self._stub = floyd_pb2_grpc.FloydServiceStub(self._channel)
         # aio 客户端不需要显式 connect()
         return self
@@ -195,12 +201,12 @@ async def demo_large_graph(server_address: str):
     print("\n=== 大图演示 ===")
     
     # 创建一个较大的随机图
-    num_vertices = 1000
+    num_vertices = 800
     edges = create_sample_graph(num_vertices)
     
     async with FloydClient(server_address) as client:
         # 测试不同进程数的性能
-        for num_processes in [1, 8, 16, 32, 64, 96]:
+        for num_processes in [32, 64, 96]:
             print(f"\n测试 {num_processes} 个进程:")
             response = await client.compute_shortest_paths(num_vertices, edges, num_processes)
             if response and response.success:

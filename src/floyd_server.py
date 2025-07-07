@@ -175,7 +175,13 @@ async def serve(port: int = 50051):
     """
     启动异步gRPC服务器
     """
-    server = grpc.aio.server()
+    # 设置消息大小限制 (100MB)
+    options = [
+        ('grpc.max_send_message_length', 100 * 1024 * 1024),
+        ('grpc.max_receive_message_length', 100 * 1024 * 1024),
+    ]
+    
+    server = grpc.aio.server(options=options)
     floyd_pb2_grpc.add_FloydServiceServicer_to_server(FloydServicer(), server)
     
     listen_addr = f'0.0.0.0:{port}'
